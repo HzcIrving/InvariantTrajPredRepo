@@ -65,12 +65,21 @@ class DistanceDropEdge(object):
 
     def __call__(self,
                  edge_index: torch.Tensor,
-                 edge_attr: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+                 edge_attr: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]: 
+        """魔术方法，可以直接调用DistanceDropEdge,它的作用是在图神经网络中根据边属性（通常是节点之间的距离）来丢弃那些距离超过特定阈值的边
+
+        Args:
+            edge_index (torch.Tensor): [2, num_edges], 起始节点 -> 终点节点 
+            edge_attr (torch.Tensor): 边属性
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]: _description_
+        """
         if self.max_distance is None:
             return edge_index, edge_attr
         row, col = edge_index
         mask = torch.norm(edge_attr, p=2, dim=-1) < self.max_distance
-        edge_index = torch.stack([row[mask], col[mask]], dim=0)
+        edge_index = torch.stack([row[mask], col[mask]], dim=0) # 合并满足要求的edge
         edge_attr = edge_attr[mask]
         return edge_index, edge_attr
 

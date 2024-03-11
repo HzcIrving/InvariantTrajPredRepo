@@ -27,7 +27,14 @@ from models import SingleInputEmbedding
 from utils import TemporalData
 from utils import init_weights
 
-
+"""
+全局交互模块 -> 捕捉场景中的长距离依赖关系    
+\theta_ij = \theta_j - \theta_i 
+1. 两个Agent之间的交互信息 eij = emb([Rotation_i(pj^T-pi^T), cos\theta_ij, sin\theta_ij])
+2. Cross Attention (for hi from localEncoder) 
+    qi = Wqhi ; kij = Wk[hj,eij] ; vij = Wv[hj, eij];
+    softmax(qi * kij) * vij -> 捕捉全局pair-wise成对交互关系
+"""
 class GlobalInteractor(nn.Module):
 
     def __init__(self,
@@ -47,7 +54,9 @@ class GlobalInteractor(nn.Module):
         if rotate:
             self.rel_embed = MultipleInputEmbedding(in_channels=[edge_dim, edge_dim], out_channel=embed_dim)
         else:
-            self.rel_embed = SingleInputEmbedding(in_channel=edge_dim, out_channel=embed_dim)
+            self.rel_embed = SingleInputEmbedding(in_channel=edge_dim, out_channel=embed_dim) 
+            
+        # Global Interactor Layers 层数3(default)
         self.global_interactor_layers = nn.ModuleList(
             [GlobalInteractorLayer(embed_dim=embed_dim, num_heads=num_heads, dropout=dropout)
              for _ in range(num_layers)])

@@ -56,8 +56,11 @@ class HiVT(pl.LightningModule):
         self.parallel = parallel
         self.lr = lr
         self.weight_decay = weight_decay
-        self.T_max = T_max
+        self.T_max = T_max 
 
+        """
+        Local Encoder + GlobalInteractor + MLPDecoder(Multi-modal) 
+        """
         self.local_encoder = LocalEncoder(historical_steps=historical_steps,
                                           node_dim=node_dim,
                                           edge_dim=edge_dim,
@@ -66,7 +69,8 @@ class HiVT(pl.LightningModule):
                                           dropout=dropout,
                                           num_temporal_layers=num_temporal_layers,
                                           local_radius=local_radius,
-                                          parallel=parallel)
+                                          parallel=parallel) 
+        
         self.global_interactor = GlobalInteractor(historical_steps=historical_steps,
                                                   embed_dim=embed_dim,
                                                   edge_dim=edge_dim,
@@ -74,12 +78,14 @@ class HiVT(pl.LightningModule):
                                                   num_heads=num_heads,
                                                   num_layers=num_global_layers,
                                                   dropout=dropout,
-                                                  rotate=rotate)
+                                                  rotate=rotate) 
+        
         self.decoder = MLPDecoder(local_channels=embed_dim,
                                   global_channels=embed_dim,
                                   future_steps=future_steps,
                                   num_modes=num_modes,
-                                  uncertain=True)
+                                  uncertain=True) 
+        
         self.reg_loss = LaplaceNLLLoss(reduction='mean')
         self.cls_loss = SoftTargetCrossEntropyLoss(reduction='mean')
 
@@ -98,7 +104,7 @@ class HiVT(pl.LightningModule):
             rotate_mat[:, 1, 1] = cos_vals
             if data.y is not None:
                 data.y = torch.bmm(data.y, rotate_mat)
-            data['rotate_mat'] = rotate_mat
+            data['rotate_mat'] = rotate_mat 
         else:
             data['rotate_mat'] = None
 
